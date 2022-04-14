@@ -140,13 +140,12 @@ var calculateHash = (index, previousHash, timestamp, data) => {
 var addBlock = (newBlock) => {
     if (isValidNewBlock(newBlock, getLatestBlock())) {
         blockchain.push(newBlock);
-        newMicroBlock = new MicroBlock(newBlock.data);
+        var newMicroBlock = new MicroBlock(newBlock.data);
         accumulatedMicroBlocks.push(newMicroBlock);
 
         if (accumulatedMicroBlocks.length === BLOCK_COUNT_THRESHOLD) {
             bookmarks.push(accumulatedMicroBlocks);
             accumulatedMicroBlocks = [];
-
         }
     }
 };
