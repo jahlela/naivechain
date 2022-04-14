@@ -140,7 +140,6 @@ var calculateHash = (index, previousHash, timestamp, data) => {
 var addBlock = (newBlock) => {
     if (isValidNewBlock(newBlock, getLatestBlock())) {
         blockchain.push(newBlock);
-        blocksAdded = blocksAdded + 1;
         newMicroBlock = new MicroBlock(newBlock.data);
         accumulatedMicroBlocks.push(newMicroBlock);
 
