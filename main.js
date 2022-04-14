@@ -3,10 +3,34 @@ var CryptoJS = require("crypto-js");
 var express = require("express");
 var bodyParser = require('body-parser');
 var WebSocket = require("ws");
+const cryptoJs = require("crypto-js");
 
+var BLOCK_COUNT_THRESHOLD = 10;
 var http_port = process.env.HTTP_PORT || 3001;
 var p2p_port = process.env.P2P_PORT || 6001;
 var initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
+var accumulatedMicroBlocks = []; // never exceeds length BLOCK_COUNT_THRESHOLD
+var bookmarks = [];
+
+// Macroblocks contain 10 microblocks => one entry in the bookmarks per macroblock
+
+class Bookmarks {
+    constructor() { }
+
+    getMicroBlocks = (start, end = null) => {
+        if (!end) {
+            end = start + 1;
+        }
+        return bookmarks[start, end];
+    }
+}
+
+class MicroBlock {
+    constructor(data) {
+        this.data = data;
+        this.contentHash = cryptoJs.SHA256(data).toString();
+    }
+}
 
 class Block {
     constructor(index, previousHash, timestamp, data, hash) {
@@ -116,6 +140,15 @@ var calculateHash = (index, previousHash, timestamp, data) => {
 var addBlock = (newBlock) => {
     if (isValidNewBlock(newBlock, getLatestBlock())) {
         blockchain.push(newBlock);
+        blocksAdded = blocksAdded + 1;
+        newMicroBlock = new MicroBlock(newBlock.data);
+        accumulatedMicroBlocks.push(newMicroBlock);
+
+        if (accumulatedMicroBlocks.length === BLOCK_COUNT_THRESHOLD) {
+            bookmarks.push(accumulatedMicroBlocks);
+            accumulatedMicroBlocks = [];
+
+        }
     }
 };
 
