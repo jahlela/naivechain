@@ -62,6 +62,7 @@ var initHttpServer = () => {
     app.get('/blocks', (req, res) => res.send(JSON.stringify(blockchain)));
     app.get('/bookmarks', (req, res) => {
         var bookmarkToSend = bookmarks[req.body.data];
+        console.log(bookmarkToSend);
         res.send(JSON.stringify(bookmarkToSend))
     });
     app.post('/mineBlock', (req, res) => {
