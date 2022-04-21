@@ -10,7 +10,7 @@ var http_port = process.env.HTTP_PORT || 3001;
 var p2p_port = process.env.P2P_PORT || 6001;
 var initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
 var accumulatedMicroBlocks = []; // never exceeds length BLOCK_COUNT_THRESHOLD
-var bookmarks = [];
+var bookmarks = [[new MicroBlock(1), new MicroBlock(2), new MicroBlock(3), new MicroBlock(4)]];
 
 // Macroblocks contain 10 microblocks => one entry in the bookmarks per macroblock
 
