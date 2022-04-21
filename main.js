@@ -60,6 +60,10 @@ var initHttpServer = () => {
     app.use(bodyParser.json());
 
     app.get('/blocks', (req, res) => res.send(JSON.stringify(blockchain)));
+    app.get('/bookmarks', (req, res) => {
+        var bookmarkToSend = bookmarks[req.body.data];
+        res.send(JSON.stringify(bookmarkToSend))
+    });
     app.post('/mineBlock', (req, res) => {
         var newBlock = generateNextBlock(req.body.data);
         addBlock(newBlock);
