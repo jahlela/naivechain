@@ -9,11 +9,9 @@ var BLOCK_COUNT_THRESHOLD = 10;
 var http_port = process.env.HTTP_PORT || 3001;
 var p2p_port = process.env.P2P_PORT || 6001;
 var initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
-var accumulatedMicroBlocks = []; // never exceeds length BLOCK_COUNT_THRESHOLD
+var microBlocksToBookmark = []; // never exceeds length BLOCK_COUNT_THRESHOLD
 
-
-// Macroblocks contain 10 microblocks => one entry in the bookmarks per macroblock
-
+// Macroblocks contain BLOCK_COUNT_THRESHOLD microblocks => one entry in the bookmarks per macroblock
 class Bookmarks {
     constructor() { }
 
@@ -54,23 +52,33 @@ var getGenesisBlock = () => {
 };
 
 var blockchain = [getGenesisBlock()];
-var bookmarks = [[new MicroBlock(1), new MicroBlock(2), new MicroBlock(3), new MicroBlock(4)]];
+var bookmarks = [];
 
 var initHttpServer = () => {
     var app = express();
     app.use(bodyParser.json());
 
     app.get('/blocks', (req, res) => res.send(JSON.stringify(blockchain)));
-    app.get('/bookmarks', (req, res) => {
-        var bookmarkToSend = bookmarks[req.body.data];
-        console.log(bookmarkToSend);
-        res.send(JSON.stringify(bookmarkToSend))
+    app.get('/bookmarkCount', (req, res) => res.send(JSON.stringify(bookmarks.length)));
+    app.post('/bookmarks', (req, res) => {
+        var { data } = req.body;
+        var bookmarkCount = bookmarks.length;
+        var isValidQuery = !isNaN(data) && data >= 0 && data <= bookmarkCount; 
+
+        if (!isValidQuery) {
+            res.send(JSON.stringify('\n Invalid bookmark query. Please submit a nonnegative integer less than ' + bookmarkCount));
+        } else {
+            var requestedBookmark = bookmarks[data];
+            console.log(bookmarks);
+            console.log(requestedBookmark);
+            res.send(requestedBookmark);
+        }
     });
     app.post('/mineBlock', (req, res) => {
         var newBlock = generateNextBlock(req.body.data);
         addBlock(newBlock);
         broadcast(responseLatestMsg());
-        console.log('block added: ' + JSON.stringify(newBlock));
+        console.log('\n block added: ' + JSON.stringify(newBlock));
         res.send();
     });
     app.get('/peers', (req, res) => {
@@ -88,7 +96,6 @@ var initP2PServer = () => {
     var server = new WebSocket.Server({port: p2p_port});
     server.on('connection', ws => initConnection(ws));
     console.log('listening websocket p2p port on: ' + p2p_port);
-
 };
 
 var initConnection = (ws) => {
@@ -147,11 +154,11 @@ var addBlock = (newBlock) => {
     if (isValidNewBlock(newBlock, getLatestBlock())) {
         blockchain.push(newBlock);
         var newMicroBlock = new MicroBlock(newBlock.data);
-        accumulatedMicroBlocks.push(newMicroBlock);
+        microBlocksToBookmark.push(newMicroBlock);
 
-        if (accumulatedMicroBlocks.length === BLOCK_COUNT_THRESHOLD) {
-            bookmarks.push(accumulatedMicroBlocks);
-            accumulatedMicroBlocks = [];
+        if (microBlocksToBookmark.length === BLOCK_COUNT_THRESHOLD) {
+            bookmarks.push(microBlocksToBookmark);
+            microBlocksToBookmark = [];
         }
     }
 };
