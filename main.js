@@ -50,6 +50,8 @@ var getGenesisBlock = () => {
     return new Block(0, "0", 1465154705, "my genesis block!!", "816534932c2b7154836da6afc367695e6337db8a921823784c14378abed4f7d7");
 };
 
+var isValidQueryValue = (queryValue, length) => !isNaN(queryValue) && queryValue >= 0 && queryValue <= length;
+
 var blockchain = [getGenesisBlock()];
 var bookmarks = [];
 
@@ -61,8 +63,8 @@ var initHttpServer = () => {
     app.post('/bookmarks', (req, res) => {
         var bookmarkCount = bookmarks.length;
         var { start = 0, end = bookmarkCount - 1 } = req.body.data;
-        var isValidStart = !isNaN(start) && start >= 0 && start <= bookmarkCount;
-        var isValidEnd = !isNaN(end) && end >= 0 && end <= bookmarkCount;
+        var isValidStart = isValidQueryValue(start, bookmarkCount);
+        var isValidEnd = isValidQueryValue(end, bookmarkCount);
         var isStartBeforeEnd = start <= end;
 
         if (!isValidStart || !isValidEnd) {
