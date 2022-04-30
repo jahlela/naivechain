@@ -14,7 +14,6 @@ var microBlocksToBookmark = []; // never exceeds length BLOCK_COUNT_THRESHOLD
 // Macroblocks contain BLOCK_COUNT_THRESHOLD microblocks => one entry in the bookmarks per macroblock
 class Bookmarks {
     constructor() { }
-
     getMicroBlocks = (start, end = null) => {
         if (!end) {
             end = start + 1;
@@ -57,13 +56,12 @@ var bookmarks = [];
 var initHttpServer = () => {
     var app = express();
     app.use(bodyParser.json());
-
     app.get('/blocks', (req, res) => res.send(JSON.stringify(blockchain)));
     app.get('/bookmarkCount', (req, res) => res.send(JSON.stringify(bookmarks.length)));
     app.post('/bookmarks', (req, res) => {
         var { data } = req.body;
         var bookmarkCount = bookmarks.length;
-        var isValidQuery = !isNaN(data) && data >= 0 && data <= bookmarkCount; 
+        var isValidQuery = !isNaN(data) && data >= 0 && data <= bookmarkCount;
 
         if (!isValidQuery) {
             res.send(JSON.stringify('\n Invalid bookmark query. Please submit a nonnegative integer less than ' + bookmarkCount));
