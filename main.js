@@ -56,20 +56,22 @@ var bookmarks = [];
 var initHttpServer = () => {
     var app = express();
     app.use(bodyParser.json());
-    app.get('/blocks', (req, res) => res.send(JSON.stringify(blockchain)));
-    app.get('/bookmarkCount', (req, res) => res.send(JSON.stringify(bookmarks.length)));
+    app.get('/blocks', (_, res) => res.send(JSON.stringify(blockchain)));
+    app.get('/bookmarkCount', (_, res) => res.send(JSON.stringify(bookmarks.length)));
     app.post('/bookmarks', (req, res) => {
-        var { data } = req.body;
         var bookmarkCount = bookmarks.length;
-        var isValidQuery = !isNaN(data) && data >= 0 && data <= bookmarkCount;
+        var { start = 0, end = bookmarkCount - 1 } = req.body.data;
+        var isValidStart = !isNaN(start) && start >= 0 && start <= bookmarkCount;
+        var isValidEnd = !isNaN(end) && end >= 0 && end <= bookmarkCount;
+        var isStartBeforeEnd = start <= end;
 
-        if (!isValidQuery) {
-            res.send(JSON.stringify('\n Invalid bookmark query. Please submit a nonnegative integer less than ' + bookmarkCount));
+        if (!isValidStart || !isValidEnd) {
+            res.send(JSON.stringify(`Invalid bookmark query. Start and end must be nonnegative integer less than ${bookmarkCount}`));
+        } else if (!isStartBeforeEnd) {
+            res.send(JSON.stringify('Invalid start and end. Start must be less or equal to end.'));
         } else {
-            var requestedBookmark = bookmarks[data];
-            console.log(bookmarks);
-            console.log(requestedBookmark);
-            res.send(requestedBookmark);
+            var requestedBookmarks = bookmarks.slice(start, end);
+            res.send(JSON.stringify(requestedBookmarks));
         }
     });
     app.post('/mineBlock', (req, res) => {
@@ -79,7 +81,7 @@ var initHttpServer = () => {
         console.log('\n block added: ' + JSON.stringify(newBlock));
         res.send();
     });
-    app.get('/peers', (req, res) => {
+    app.get('/peers', (_, res) => {
         res.send(sockets.map(s => s._socket.remoteAddress + ':' + s._socket.remotePort));
     });
     app.post('/addPeer', (req, res) => {
