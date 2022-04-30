@@ -9,7 +9,6 @@ var BLOCK_COUNT_THRESHOLD = 10;
 var http_port = process.env.HTTP_PORT || 3001;
 var p2p_port = process.env.P2P_PORT || 6001;
 var initialPeers = process.env.PEERS ? process.env.PEERS.split(',') : [];
-var microBlocksToBookmark = []; // never exceeds length BLOCK_COUNT_THRESHOLD
 
 // Macroblocks contain BLOCK_COUNT_THRESHOLD microblocks => one entry in the bookmarks per macroblock
 class Bookmarks {
@@ -53,6 +52,7 @@ var getGenesisBlock = () => {
 var isValidQueryValue = (queryValue, length) => !isNaN(queryValue) && queryValue >= 0 && queryValue <= length;
 
 var blockchain = [getGenesisBlock()];
+var microBlocksToBookmark = [getGenesisBlock()]; // never exceeds length BLOCK_COUNT_THRESHOLD
 var bookmarks = [];
 
 var initHttpServer = () => {
